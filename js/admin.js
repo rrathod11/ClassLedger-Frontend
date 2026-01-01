@@ -9,6 +9,36 @@ let selectedClass = null;
 let selectedDate = null;
 
 /**
+ * Utility functions - Defined early to ensure availability
+ */
+function showLoading(elementId, message = 'Loading...') {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
+  }
+}
+
+function hideLoading(elementId) {
+  // Will be replaced by render functions
+}
+
+function showSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.add('select-loading');
+    select.disabled = true;
+  }
+}
+
+function hideSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.remove('select-loading');
+    select.disabled = false;
+  }
+}
+
+/**
  * Initialize admin dashboard
  */
 async function initAdminDashboard() {
@@ -574,33 +604,40 @@ function renderDateRangeReport(report) {
   
   // Generate analytics if available
   let analyticsHtml = '';
-  if (typeof renderAnalytics !== 'undefined') {
-    // Convert dailyData object to array format for analytics
-    const dailyDataArray = Object.keys(dailyData).map(date => ({
-      date: date,
-      present: dailyData[date].present || 0,
-      absent: dailyData[date].absent || 0,
-      late: dailyData[date].late || 0
-    })).sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    const analytics = renderAnalytics(dailyDataArray, []);
-    analyticsHtml = `
-      <div style="margin-top: 2rem;">
-        <h4>Analytics</h4>
-        ${analytics.trends.direction ? `
-          <p class="${analytics.trends.direction === 'up' ? 'trend-up' : analytics.trends.direction === 'down' ? 'trend-down' : 'trend-neutral'}">
-            Trend: ${analytics.trends.direction === 'up' ? '↑' : analytics.trends.direction === 'down' ? '↓' : '→'} 
-            ${analytics.trends.change ? '(' + analytics.trends.change + '%)' : ''}
-          </p>
-        ` : ''}
-        ${analytics.anomalies.length > 0 ? `
-          <div style="margin-top: 1rem;">
-            <strong>Anomalies:</strong>
-            ${analytics.anomalies.map(a => `<div class="anomaly-alert">${a.message}</div>`).join('')}
+  if (typeof renderAnalytics !== 'undefined' && dailyData && typeof dailyData === 'object') {
+    try {
+      // Convert dailyData object to array format for analytics
+      const dailyDataArray = Object.keys(dailyData).map(date => ({
+        date: date,
+        present: dailyData[date]?.present || 0,
+        absent: dailyData[date]?.absent || 0,
+        late: dailyData[date]?.late || 0
+      })).sort((a, b) => new Date(a.date) - new Date(b.date));
+      
+      if (dailyDataArray.length > 0) {
+        const analytics = renderAnalytics(dailyDataArray, []);
+        analyticsHtml = `
+          <div style="margin-top: 2rem;">
+            <h4>Analytics</h4>
+            ${analytics.trends?.direction ? `
+              <p class="${analytics.trends.direction === 'up' ? 'trend-up' : analytics.trends.direction === 'down' ? 'trend-down' : 'trend-neutral'}">
+                Trend: ${analytics.trends.direction === 'up' ? '↑' : analytics.trends.direction === 'down' ? '↓' : '→'} 
+                ${analytics.trends.change ? '(' + analytics.trends.change + '%)' : ''}
+              </p>
+            ` : ''}
+            ${analytics.anomalies?.length > 0 ? `
+              <div style="margin-top: 1rem;">
+                <strong>Anomalies:</strong>
+                ${analytics.anomalies.map(a => `<div class="anomaly-alert">${a.message}</div>`).join('')}
+              </div>
+            ` : ''}
           </div>
-        ` : ''}
-      </div>
-    `;
+        `;
+      }
+    } catch (error) {
+      console.error('Analytics rendering error:', error);
+      // Continue without analytics if there's an error
+    }
   }
   
   container.innerHTML = `
@@ -668,35 +705,7 @@ function exportToCSV() {
   showMessage('Export feature coming soon', 'info');
 }
 
-/**
- * Utility functions
- */
-function showLoading(elementId, message = 'Loading...') {
-  const el = document.getElementById(elementId);
-  if (el) {
-    el.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
-  }
-}
-
-function hideLoading(elementId) {
-  // Will be replaced by render functions
-}
-
-function showSelectLoading(selectId) {
-  const select = document.getElementById(selectId);
-  if (select) {
-    select.classList.add('select-loading');
-    select.disabled = true;
-  }
-}
-
-function hideSelectLoading(selectId) {
-  const select = document.getElementById(selectId);
-  if (select) {
-    select.classList.remove('select-loading');
-    select.disabled = false;
-  }
-}
+// Utility functions moved to top of file for early availability
 
 function showMessage(message, type = 'info') {
   // Use toast if available, otherwise fallback to alert
