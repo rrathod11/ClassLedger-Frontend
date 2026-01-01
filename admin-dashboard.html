@@ -131,7 +131,7 @@
             document.body.classList.toggle('dark-theme');
             const isDark = document.body.classList.contains('dark-theme');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            Toast.info(`Switched to ${isDark ? 'dark' : 'light'} mode`);
+            showToast(`Switched to ${isDark ? 'dark' : 'light'} mode`, 'info');
         }
         
         // Load saved theme
@@ -154,19 +154,7 @@
             }
         }
     </script>
-    <script>
-        // Populate report class selector
-        document.addEventListener('DOMContentLoaded', () => {
-            const classSelect = document.getElementById('classSelect');
-            const reportClassSelect = document.getElementById('reportClassSelect');
-            
-            if (classSelect && reportClassSelect) {
-                classSelect.addEventListener('change', () => {
-                    reportClassSelect.innerHTML = classSelect.innerHTML;
-                });
-            }
-        });
-    </script>
+    <!-- Note: Class dropdowns are populated by populateClassDropdown() in admin.js -->
 </body>
 </html>
 

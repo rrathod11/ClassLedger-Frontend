@@ -147,20 +147,7 @@
             }
         }
     </script>
-    <script>
-        // Principal dashboard can use admin functions for viewing
-        // But editing is disabled
-        document.addEventListener('DOMContentLoaded', () => {
-            const classSelect = document.getElementById('classSelect');
-            const reportClassSelect = document.getElementById('reportClassSelect');
-            
-            if (classSelect && reportClassSelect) {
-                classSelect.addEventListener('change', () => {
-                    reportClassSelect.innerHTML = classSelect.innerHTML;
-                });
-            }
-        });
-    </script>
+    <!-- Note: Class dropdowns are populated by populateClassDropdown() in principal.js -->
 </body>
 </html>
 
