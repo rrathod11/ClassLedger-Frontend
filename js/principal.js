@@ -11,6 +11,36 @@ let selectedClass = null;
 let selectedDate = null;
 
 /**
+ * Utility functions - Defined early to ensure availability
+ */
+function showLoading(elementId, message = 'Loading...') {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
+  }
+}
+
+function hideLoading(elementId) {
+  // Will be replaced by render functions
+}
+
+function showSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.add('select-loading');
+    select.disabled = true;
+  }
+}
+
+function hideSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.remove('select-loading');
+    select.disabled = false;
+  }
+}
+
+/**
  * Initialize principal dashboard
  */
 async function initPrincipalDashboard() {
@@ -428,17 +458,25 @@ function setupReportRange() {
           if (response.success && response.data) {
             // Use admin's renderDateRangeReport if available, otherwise render basic
             if (typeof renderDateRangeReport !== 'undefined' && window.renderDateRangeReport) {
-              window.renderDateRangeReport(response.data);
+              try {
+                window.renderDateRangeReport(response.data);
+                showToast('Report generated successfully', 'success');
+              } catch (error) {
+                console.error('Error rendering report with admin function:', error);
+                // Fallback to basic render
+                renderBasicDateRangeReport(response.data);
+                showToast('Report generated successfully', 'success');
+              }
             } else {
               renderBasicDateRangeReport(response.data);
+              showToast('Report generated successfully', 'success');
             }
-            showToast('Report generated successfully', 'success');
           } else {
             showToast(response.error || 'Failed to generate report', 'error');
           }
         } catch (error) {
           console.error('Generate report error:', error);
-          showToast('Error generating report', 'error');
+          showToast('Error generating report: ' + error.message, 'error');
         } finally {
           hideLoading('dateRangeReport');
           generateReportBtn.disabled = false;
@@ -455,6 +493,11 @@ function setupReportRange() {
 function renderBasicDateRangeReport(report) {
   const container = document.getElementById('dateRangeReport');
   if (!container) return;
+  
+  if (!report || !report.summary || !report.dailyData) {
+    container.innerHTML = '<p class="text-center">Invalid report data</p>';
+    return;
+  }
   
   const { summary, dailyData } = report;
   
@@ -703,35 +746,7 @@ function parseTime(timeString) {
   return hours * 60 + minutes;
 }
 
-/**
- * Utility functions
- */
-function showLoading(elementId, message = 'Loading...') {
-  const el = document.getElementById(elementId);
-  if (el) {
-    el.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
-  }
-}
-
-function hideLoading(elementId) {
-  // Will be replaced by render functions
-}
-
-function showSelectLoading(selectId) {
-  const select = document.getElementById(selectId);
-  if (select) {
-    select.classList.add('select-loading');
-    select.disabled = true;
-  }
-}
-
-function hideSelectLoading(selectId) {
-  const select = document.getElementById(selectId);
-  if (select) {
-    select.classList.remove('select-loading');
-    select.disabled = false;
-  }
-}
+// Utility functions moved to top of file for early availability
 
 /**
  * Show message
