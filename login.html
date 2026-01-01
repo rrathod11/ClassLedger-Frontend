@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ClassLedger by Tarka</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <div class="logo">ClassLedger</div>
+                <div class="branding">by Tarka</div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card" style="max-width: 500px; margin: 3rem auto;">
+                <div class="text-center">
+                    <h1 style="margin-bottom: 1rem;">Login to ClassLedger</h1>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Sign in with your Google account to access the attendance system.
+                        Only authorized school staff can access this system.
+                    </p>
+                </div>
+
+                <div id="loginStatus" class="alert alert-info" style="display: none;"></div>
+
+                <div class="text-center">
+                    <button id="loginBtn" class="btn btn-primary" style="width: 100%; margin-bottom: 1rem;">
+                        Sign in with Google
+                    </button>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        You will be redirected to Google's sign-in page.
+                    </p>
+                    <a href="index.html" style="color: var(--primary-color); text-decoration: none;">
+                        ← Back to Homepage
+                    </a>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <h3 style="margin-bottom: 1rem;">Access Requirements</h3>
+                <ul style="line-height: 2; margin-left: 2rem;">
+                    <li>Your Google email must be registered in the system</li>
+                    <li>Your account must be marked as active</li>
+                    <li>You must have an assigned role (Teacher, Admin, or Principal)</li>
+                </ul>
+                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    If you believe you should have access, please contact your school administrator.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 ClassLedger by Tarka</p>
+            <p>Powered by Tarka</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Check URL parameters immediately (before DOMContentLoaded)
+        // This handles OAuth redirects that come with user data in URL
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userParam = urlParams.get('user');
+            const errorParam = urlParams.get('error');
+            
+            if (errorParam === 'unauthorized') {
+                // Wait for DOM, then show access denied
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        showAccessDenied();
+                    });
+                } else {
+                    showAccessDenied();
+                }
+                return;
+            } else if (userParam) {
+                try {
+                    const user = JSON.parse(decodeURIComponent(userParam));
+                    sessionStorage.setItem('user', JSON.stringify(user));
+                    sessionStorage.setItem('authenticated', 'true');
+                    // Clean URL immediately
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    // Redirect to appropriate dashboard
+                    // Wait for auth.js to load if needed
+                    if (typeof redirectToDashboard === 'function') {
+                        redirectToDashboard(user.role);
+                    } else {
+                        // Wait for auth.js to load
+                        window.addEventListener('load', function() {
+                            if (typeof redirectToDashboard === 'function') {
+                                redirectToDashboard(user.role);
+                            } else {
+                                // Fallback: redirect based on role
+                                const roleMap = {
+                                    'teacher': 'teacher-dashboard.html',
+                                    'admin': 'admin-dashboard.html',
+                                    'principal': 'principal-dashboard.html'
+                                };
+                                const dashboard = roleMap[user.role] || 'index.html';
+                                window.location.href = dashboard;
+                            }
+                        });
+                    }
+                    return;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showAccessDenied();
+                        });
+                    } else {
+                        showAccessDenied();
+                    }
+                    return;
+                }
+            }
+        })();
+
+        // Wait for DOM to be ready for button initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're showing access denied (error parameter in URL)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('error') === 'unauthorized') {
+                // Access denied is already shown, don't try to initialize button
+                return;
+            }
+
+            // Check if already logged in (skip if we just processed URL params)
+            if (!window.location.search.includes('user=') && !window.location.search.includes('error=')) {
+                if (isAuthenticated()) {
+                    const user = getCurrentUser();
+                    if (user) {
+                        redirectToDashboard(user.role);
+                        return;
+                    }
+                }
+            }
+
+            // Initialize login button
+            const loginBtn = document.getElementById('loginBtn');
+            if (!loginBtn) {
+                // Button might have been removed by showAccessDenied, check if we should show it
+                if (urlParams.get('error') !== 'unauthorized') {
+                    console.error('Login button not found!');
+                }
+                return;
+            }
+
+            loginBtn.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Login button clicked');
+                
+                const statusEl = document.getElementById('loginStatus');
+                if (statusEl) {
+                    statusEl.style.display = 'block';
+                    statusEl.className = 'alert alert-info';
+                    statusEl.textContent = 'Redirecting to Google sign-in...';
+                }
+                
+                // Get API URL from auth.js (should be loaded by now)
+                const apiUrl = typeof API_URL !== 'undefined' ? API_URL : 'https://script.google.com/macros/s/AKfycbwtvbmUP8SDG3pmLZ0uCxoZjZ8Fs61XFHXZI5sh0GmkMnRK_VrrW7DHO-DpG-5o5elR/exec';
+                
+                // Redirect to Apps Script Web App which will handle OAuth
+                // The Web App will redirect back with user data
+                const frontendBaseUrl = window.location.origin + window.location.pathname.replace('/login.html', '');
+                const redirectUrl = `${frontendBaseUrl}/login.html`;
+                
+                console.log('Redirecting to:', `${apiUrl}?action=auth&redirect=${encodeURIComponent(redirectUrl)}`);
+                
+                // Redirect to Web App with redirect parameter
+                window.location.href = `${apiUrl}?action=auth&redirect=${encodeURIComponent(redirectUrl)}`;
+            });
+        });
+    </script>
+</body>
+</html>
+

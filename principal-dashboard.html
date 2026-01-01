@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Dashboard - ClassLedger by Tarka</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <div class="logo">ClassLedger</div>
+                <div class="branding">by Tarka</div>
+            </div>
+            <div class="user-info">
+                <div>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="branding" id="userRole">Principal</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 class="card-title">School Overview</h2>
+                        <div id="schoolName" style="color: var(--text-secondary);">Loading...</div>
+                    </div>
+                    <button class="btn-refresh" onclick="manualRefresh()" title="Refresh data (Ctrl+R)">
+                        <span>🔄</span> Refresh
+                    </button>
+                </div>
+                <div id="overviewStats">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading statistics...
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Daily Attendance Report</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="classSelect">Select Class</label>
+                        <select id="classSelect" class="form-select">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="dateSelect">Select Date</label>
+                        <input type="date" id="dateSelect" class="form-input">
+                    </div>
+                </div>
+                <div id="reportContent">
+                    <p class="text-center">Select a class and date to view report</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Absent Students</h3>
+                </div>
+                <div id="absentStudents">
+                    <p class="text-center">Select a class and date to view absent students</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Teacher Accountability</h3>
+                </div>
+                <div id="teacherAccountability">
+                    <p class="text-center">Select a class and date to view teacher accountability</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Date Range Report</h3>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="reportClassSelect">Class</label>
+                        <select id="reportClassSelect" class="form-select">
+                            <option value="">Select Class</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reportStartDate">Start Date</label>
+                        <input type="date" id="reportStartDate" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="reportEndDate">End Date</label>
+                        <input type="date" id="reportEndDate" class="form-input">
+                    </div>
+                </div>
+                <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
+                <div id="dateRangeReport" style="margin-top: 2rem;"></div>
+            </div>
+
+            <div class="card">
+                <div class="alert alert-info">
+                    <strong>Read-Only Mode:</strong> As a Principal, you have read-only access to all reports and dashboards.
+                    You cannot edit attendance or modify any data.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 ClassLedger by Tarka</p>
+            <p>Powered by Tarka</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/realtime.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/advanced-reporting.js"></script>
+    <script src="js/principal.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        // Check if user data is in URL (from OAuth redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userParam = urlParams.get('user');
+        if (userParam) {
+            try {
+                const user = JSON.parse(decodeURIComponent(userParam));
+                sessionStorage.setItem('user', JSON.stringify(user));
+                sessionStorage.setItem('authenticated', 'true');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+    </script>
+    <script>
+        // Principal dashboard can use admin functions for viewing
+        // But editing is disabled
+        document.addEventListener('DOMContentLoaded', () => {
+            const classSelect = document.getElementById('classSelect');
+            const reportClassSelect = document.getElementById('reportClassSelect');
+            
+            if (classSelect && reportClassSelect) {
+                classSelect.addEventListener('change', () => {
+                    reportClassSelect.innerHTML = classSelect.innerHTML;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

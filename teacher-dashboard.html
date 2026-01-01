@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - ClassLedger by Tarka</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <div class="logo">ClassLedger</div>
+                <div class="branding">by Tarka</div>
+            </div>
+            <div class="user-info">
+                <div>
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="branding" id="userRole">Teacher</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 class="card-title">Mark Attendance</h2>
+                        <div id="schoolName" style="color: var(--text-secondary);">Loading...</div>
+                    </div>
+                    <button class="btn-refresh" onclick="manualRefresh()" title="Refresh data (Ctrl+R)">
+                        <span>🔄</span> Refresh
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="classSelect">Select Class</label>
+                    <select id="classSelect" class="form-select">
+                        <option value="">Loading classes...</option>
+                    </select>
+                </div>
+
+                <div id="summaryContainer" class="summary" style="display: none;">
+                    <div class="summary-card">
+                        <div class="summary-label">Total Students</div>
+                        <div class="summary-value" id="summaryTotal">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Present</div>
+                        <div class="summary-value present" id="summaryPresent">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Absent</div>
+                        <div class="summary-value absent" id="summaryAbsent">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Late</div>
+                        <div class="summary-value late" id="summaryLate">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Student List</h3>
+                    <button class="btn btn-success" onclick="submitAttendance()">Submit Attendance</button>
+                </div>
+                <div id="studentsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading students...
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">Instructions</h3>
+                <ul style="line-height: 2; margin-left: 2rem;">
+                    <li><strong>Check-In Window:</strong> 07:00 - 10:30</li>
+                    <li><strong>Late Arrival:</strong> After 09:15, students are automatically marked as Late</li>
+                    <li><strong>Check-Out Window:</strong> 12:30 - 15:30</li>
+                    <li><strong>Edit Window:</strong> You can edit attendance within 15 minutes of marking</li>
+                    <li><strong>One Entry Per Day:</strong> Each student can have only one check-in and one check-out per day</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2024 ClassLedger by Tarka</p>
+            <p>Powered by Tarka</p>
+        </div>
+    </footer>
+
+    <script src="js/auth.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/bulk-operations.js"></script>
+    <script src="js/teacher.js"></script>
+    <script>
+        // Check if user data is in URL (from OAuth redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userParam = urlParams.get('user');
+        if (userParam) {
+            try {
+                const user = JSON.parse(decodeURIComponent(userParam));
+                sessionStorage.setItem('user', JSON.stringify(user));
+                sessionStorage.setItem('authenticated', 'true');
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (e) {
+                console.error('Error parsing user data:', e);
+            }
+        }
+    </script>
+</body>
+</html>
+
