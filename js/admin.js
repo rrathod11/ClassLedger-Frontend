@@ -246,7 +246,7 @@ async function loadClassReport() {
     }
   } catch (error) {
     console.error('Load report error:', error);
-    showMessage('Error loading report', 'error');
+    showToast('Error loading report', 'error');
   }
   // Note: hideLoading not needed as render functions replace content
 }
@@ -308,9 +308,9 @@ async function toggleWhatsAppAlert(studentId, enabled) {
     });
     
     if (response.success) {
-      showMessage(`WhatsApp alerts ${enabled ? 'enabled' : 'disabled'} for student`, 'success');
+      showToast(`WhatsApp alerts ${enabled ? 'enabled' : 'disabled'} for student`, 'success');
     } else {
-      showMessage(response.error || 'Failed to update setting', 'error');
+      showToast(response.error || 'Failed to update setting', 'error');
       // Revert checkbox
       const checkbox = document.querySelector(`input[onchange*="${studentId}"]`);
       if (checkbox) checkbox.checked = !enabled;

@@ -249,7 +249,7 @@ function canEdit(timeString) {
  */
 async function markAttendance(studentId, status) {
   if (!selectedClass) {
-    showMessage('Please select a class', 'error');
+    showToast('Please select a class', 'error');
     return;
   }
   
@@ -260,13 +260,13 @@ async function markAttendance(studentId, status) {
   const existing = todayAttendance[studentId];
   if (existing && existing.checkIn) {
     if (!canEdit(existing.time)) {
-      Toast.error('Attendance already marked. Edit window expired (15 minutes)');
+      showToast('Attendance already marked. Edit window expired (15 minutes)', 'error');
       return;
     }
     
     // Show edit confirmation using new confirm dialog
-    const confirmed = typeof confirmAction !== 'undefined' 
-      ? await confirmAction('Attendance already exists. Do you want to update it?', 'Update Attendance')
+    const confirmed = typeof confirmDialog !== 'undefined' 
+      ? await confirmDialog('Attendance already exists. Do you want to update it?', 'Update Attendance')
       : confirm('Attendance already exists. Do you want to update it?');
     
     if (!confirmed) {
@@ -294,7 +294,7 @@ async function markAttendance(studentId, status) {
     });
     
     if (response.success) {
-      Toast.success('Attendance marked successfully');
+      showToast('Attendance marked successfully', 'success');
       await loadTodayAttendance();
       // Auto-save after marking
       if (autoSave) {
@@ -302,7 +302,7 @@ async function markAttendance(studentId, status) {
         autoSave.save(selectedClass, attendanceData);
       }
     } else {
-      Toast.error(response.error || 'Failed to mark attendance');
+      showToast(response.error || 'Failed to mark attendance', 'error');
     }
   } catch (error) {
     console.error('Mark attendance error:', error);
