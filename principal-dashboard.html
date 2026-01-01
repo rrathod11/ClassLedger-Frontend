@@ -138,6 +138,20 @@
     <script src="js/principal.js"></script>
     <script src="js/admin.js"></script>
     <script>
+        // Setup real-time updates for principal
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                if (typeof setupPrincipalRealtime !== 'undefined') {
+                    setupPrincipalRealtime();
+                }
+            });
+        } else {
+            if (typeof setupPrincipalRealtime !== 'undefined') {
+                setupPrincipalRealtime();
+            }
+        }
+    </script>
+    <script>
         // Check if user data is in URL (from OAuth redirect)
         const urlParams = new URLSearchParams(window.location.search);
         const userParam = urlParams.get('user');

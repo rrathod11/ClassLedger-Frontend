@@ -101,6 +101,93 @@
                 <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
                 <div id="dateRangeReport" style="margin-top: 2rem;"></div>
             </div>
+
+            <!-- Student Management Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Student Management</h3>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-primary" onclick="openAddStudentModal()">+ Add Student</button>
+                        <button class="btn btn-secondary" onclick="downloadCSVTemplate()">Download Template</button>
+                        <button class="btn btn-secondary" onclick="openBulkImportModal()">Bulk Import</button>
+                    </div>
+                </div>
+                <div id="studentManagement">
+                    <div class="form-group">
+                        <input type="text" id="studentSearch" class="form-input" placeholder="Search students by name, roll, or class..." onkeyup="searchStudents()">
+                    </div>
+                    <div id="studentsList" class="table-container">
+                        <p class="text-center">Loading students...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Management Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Teacher Management</h3>
+                    <button class="btn btn-primary" onclick="openAddTeacherModal()">+ Add Teacher</button>
+                </div>
+                <div id="teacherManagement">
+                    <div id="teachersList" class="table-container">
+                        <p class="text-center">Loading teachers...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">System Settings</h3>
+                </div>
+                <div id="systemSettings">
+                    <div class="form-group">
+                        <label class="form-label">Check-In Window</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="time" id="checkInStart" class="form-input" value="07:00">
+                            <input type="time" id="checkInEnd" class="form-input" value="10:30">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Check-Out Window</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <input type="time" id="checkOutStart" class="form-input" value="12:30">
+                            <input type="time" id="checkOutEnd" class="form-input" value="15:30">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Late Arrival Threshold</label>
+                        <input type="time" id="lateThreshold" class="form-input" value="09:15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Edit Window (minutes)</label>
+                        <input type="number" id="editWindow" class="form-input" value="15" min="0" max="60">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSystemSettings()">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Student Portal Management -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Student Portal</h3>
+                </div>
+                <div id="studentPortal">
+                    <p style="margin-bottom: 1rem;">Manage student certificate downloads and correction requests.</p>
+                    <div class="form-group">
+                        <label class="form-label">Select Student</label>
+                        <select id="portalStudentSelect" class="form-select" onchange="loadStudentPortalData()">
+                            <option value="">Select a student...</option>
+                        </select>
+                    </div>
+                    <div id="studentPortalActions" style="display: none;">
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="downloadStudentCertificate()">Download Certificate</button>
+                            <button class="btn btn-secondary" onclick="viewCorrectionRequests()">View Correction Requests</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -114,7 +201,12 @@
     <script src="js/auth.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/analytics.js"></script>
+    <script src="js/advanced-reporting.js"></script>
+    <script src="js/realtime.js"></script>
+    <script src="js/bulk-operations.js"></script>
     <script src="js/holiday-calendar.js"></script>
+    <script src="js/admin-management.js"></script>
+    <script src="js/student-portal.js"></script>
     <script src="js/admin.js"></script>
     <script>
         // Initialize language selector
