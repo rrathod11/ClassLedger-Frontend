@@ -7,21 +7,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - ClassLedger by Tarka</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <header>
+    <header style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
         <div class="header-content">
-            <div>
-                <div class="logo">ClassLedger</div>
-                <div class="branding">by Tarka</div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <img src="assets/logo-white.svg" alt="ClassLedger" style="height: 40px;">
             </div>
             <div class="user-info">
                 <div>
-                    <div class="user-name" id="userName">Loading...</div>
-                    <div class="branding" id="userRole">Admin</div>
+                    <div class="user-name" id="userName" style="color: white;">Loading...</div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="badge" style="background: rgba(255,255,255,0.2); color: white; padding: 0.25rem 0.75rem; border-radius: 0.25rem; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.3);">
+                            🔧 Full Access
+                        </span>
+                        <div class="branding" id="userRole" style="color: rgba(255,255,255,0.9);">Admin</div>
+                    </div>
                 </div>
-                <button class="btn-logout" onclick="logout()">Logout</button>
+                <button class="btn-logout" onclick="logout()" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">Logout</button>
             </div>
         </div>
     </header>
