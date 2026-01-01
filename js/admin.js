@@ -59,22 +59,38 @@ async function initAdminDashboard() {
     classSelect.addEventListener('change', async (e) => {
       selectedClass = e.target.value;
       if (selectedClass) {
+        // Ensure date is set (default to today if not set)
+        if (!selectedDate) {
+          selectedDate = new Date().toISOString().split('T')[0];
+          const dateInput = document.getElementById('dateSelect');
+          if (dateInput) {
+            dateInput.value = selectedDate;
+          }
+        }
+        
         // Show loading indicator
         showSelectLoading('classSelect');
-        showLoading('attendanceStats');
-        showLoading('absentStudents');
-        showLoading('teacherAccountability');
+        showLoading('attendanceStats', 'Loading attendance statistics...');
+        showLoading('absentStudents', 'Loading absent students...');
+        showLoading('teacherAccountability', 'Loading teacher accountability...');
         
         try {
           await loadClassReport();
+        } catch (error) {
+          console.error('Error loading class report:', error);
+          showToast('Error loading report. Please try again.', 'error');
         } finally {
           hideSelectLoading('classSelect');
         }
       } else {
         // Clear content when no class selected
-        document.getElementById('attendanceStats').innerHTML = '';
-        document.getElementById('absentStudents').innerHTML = '<p class="text-center">Select a class and date to view absent students</p>';
-        document.getElementById('teacherAccountability').innerHTML = '<p class="text-center">Select a class and date to view teacher accountability</p>';
+        const attendanceStatsEl = document.getElementById('attendanceStats');
+        const absentStudentsEl = document.getElementById('absentStudents');
+        const teacherAccountabilityEl = document.getElementById('teacherAccountability');
+        
+        if (attendanceStatsEl) attendanceStatsEl.innerHTML = '';
+        if (absentStudentsEl) absentStudentsEl.innerHTML = '<p class="text-center">Select a class and date to view absent students</p>';
+        if (teacherAccountabilityEl) teacherAccountabilityEl.innerHTML = '<p class="text-center">Select a class and date to view teacher accountability</p>';
       }
     });
   }
@@ -199,7 +215,19 @@ function populateClassDropdown(classes) {
  * Load class report for selected date
  */
 async function loadClassReport() {
-  if (!selectedClass || !selectedDate) return;
+  if (!selectedClass) {
+    showToast('Please select a class first', 'warning');
+    return;
+  }
+  
+  if (!selectedDate) {
+    // Auto-set to today if not set
+    selectedDate = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('dateSelect');
+    if (dateInput) {
+      dateInput.value = selectedDate;
+    }
+  }
   
   try {
     // Show loading for all sections
