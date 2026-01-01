@@ -575,7 +575,15 @@ function renderDateRangeReport(report) {
   // Generate analytics if available
   let analyticsHtml = '';
   if (typeof renderAnalytics !== 'undefined') {
-    const analytics = renderAnalytics(dailyData, []);
+    // Convert dailyData object to array format for analytics
+    const dailyDataArray = Object.keys(dailyData).map(date => ({
+      date: date,
+      present: dailyData[date].present || 0,
+      absent: dailyData[date].absent || 0,
+      late: dailyData[date].late || 0
+    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    const analytics = renderAnalytics(dailyDataArray, []);
     analyticsHtml = `
       <div style="margin-top: 2rem;">
         <h4>Analytics</h4>
@@ -663,15 +671,31 @@ function exportToCSV() {
 /**
  * Utility functions
  */
-function showLoading(elementId) {
+function showLoading(elementId, message = 'Loading...') {
   const el = document.getElementById(elementId);
   if (el) {
-    el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+    el.innerHTML = `<div class="loading"><div class="spinner"></div>${message}</div>`;
   }
 }
 
 function hideLoading(elementId) {
   // Will be replaced by render functions
+}
+
+function showSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.add('select-loading');
+    select.disabled = true;
+  }
+}
+
+function hideSelectLoading(selectId) {
+  const select = document.getElementById(selectId);
+  if (select) {
+    select.classList.remove('select-loading');
+    select.disabled = false;
+  }
 }
 
 function showMessage(message, type = 'info') {
@@ -698,24 +722,44 @@ function showMessage(message, type = 'info') {
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     initAdminDashboard();
+    // Setup real-time updates if available
+    if (typeof setupAdminRealtime !== 'undefined') {
+      setupAdminRealtime();
+    }
+    // Setup keyboard shortcuts if available
+    if (typeof setupKeyboardShortcuts !== 'undefined') {
+      setupKeyboardShortcuts({
+        'ctrl+r': () => {
+          if (typeof manualRefresh !== 'undefined') {
+            manualRefresh();
+          }
+        },
+        'ctrl+e': () => {
+          const exportBtn = document.getElementById('exportReportBtn');
+          if (exportBtn) exportBtn.click();
+        }
+      });
+    }
+  });
+} else {
+  initAdminDashboard();
+  // Setup real-time updates if available
+  if (typeof setupAdminRealtime !== 'undefined') {
     setupAdminRealtime();
+  }
+  // Setup keyboard shortcuts if available
+  if (typeof setupKeyboardShortcuts !== 'undefined') {
     setupKeyboardShortcuts({
-      'ctrl+r': () => manualRefresh(),
+      'ctrl+r': () => {
+        if (typeof manualRefresh !== 'undefined') {
+          manualRefresh();
+        }
+      },
       'ctrl+e': () => {
         const exportBtn = document.getElementById('exportReportBtn');
         if (exportBtn) exportBtn.click();
       }
     });
-  });
-} else {
-  initAdminDashboard();
-  setupAdminRealtime();
-  setupKeyboardShortcuts({
-    'ctrl+r': () => manualRefresh(),
-    'ctrl+e': () => {
-      const exportBtn = document.getElementById('exportReportBtn');
-      if (exportBtn) exportBtn.click();
-    }
-  });
+  }
 }
 

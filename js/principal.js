@@ -373,10 +373,141 @@ async function loadClassReport() {
  * Setup report date range (reuse admin function)
  */
 function setupReportRange() {
-  // Reuse admin dashboard function if available
-  if (typeof setupReportRange === 'function' && window.setupReportRange) {
-    window.setupReportRange();
+  // Setup date inputs
+  const startDateInput = document.getElementById('reportStartDate');
+  const endDateInput = document.getElementById('reportEndDate');
+  const generateReportBtn = document.getElementById('generateReportBtn');
+  
+  if (startDateInput && endDateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    startDateInput.max = today;
+    endDateInput.max = today;
+    
+    // Set default to current week
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    startDateInput.value = weekAgo.toISOString().split('T')[0];
+    endDateInput.value = today;
   }
+  
+  // Setup button click handler - use admin function if available, otherwise create our own
+  if (generateReportBtn) {
+    generateReportBtn.addEventListener('click', async () => {
+      if (typeof generateDateRangeReport !== 'undefined' && window.generateDateRangeReport) {
+        // Use admin's function if available
+        await window.generateDateRangeReport();
+      } else {
+        // Fallback: create our own handler
+        const startDate = document.getElementById('reportStartDate')?.value;
+        const endDate = document.getElementById('reportEndDate')?.value;
+        const reportClass = document.getElementById('reportClassSelect')?.value;
+        
+        if (!startDate || !endDate) {
+          showToast('Please select start and end dates', 'error');
+          return;
+        }
+        
+        if (!reportClass) {
+          showToast('Please select a class', 'error');
+          return;
+        }
+        
+        // Show loading
+        generateReportBtn.disabled = true;
+        const originalBtnText = generateReportBtn.textContent;
+        generateReportBtn.innerHTML = '<span class="loading-inline"><span class="spinner-small"></span> Generating...</span>';
+        
+        try {
+          showLoading('dateRangeReport', 'Generating report...');
+          const response = await apiGet('getReport', {
+            class: reportClass,
+            startDate: startDate,
+            endDate: endDate
+          });
+          
+          if (response.success && response.data) {
+            // Use admin's renderDateRangeReport if available, otherwise render basic
+            if (typeof renderDateRangeReport !== 'undefined' && window.renderDateRangeReport) {
+              window.renderDateRangeReport(response.data);
+            } else {
+              renderBasicDateRangeReport(response.data);
+            }
+            showToast('Report generated successfully', 'success');
+          } else {
+            showToast(response.error || 'Failed to generate report', 'error');
+          }
+        } catch (error) {
+          console.error('Generate report error:', error);
+          showToast('Error generating report', 'error');
+        } finally {
+          hideLoading('dateRangeReport');
+          generateReportBtn.disabled = false;
+          generateReportBtn.textContent = originalBtnText;
+        }
+      }
+    });
+  }
+}
+
+/**
+ * Render basic date range report (fallback if admin function not available)
+ */
+function renderBasicDateRangeReport(report) {
+  const container = document.getElementById('dateRangeReport');
+  if (!container) return;
+  
+  const { summary, dailyData } = report;
+  
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Report Summary</h3>
+      </div>
+      <div class="summary mb-3">
+        <div class="summary-card">
+          <div class="summary-label">Total Days</div>
+          <div class="summary-value">${summary.totalDays}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total Present</div>
+          <div class="summary-value present">${summary.present}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total Absent</div>
+          <div class="summary-value absent">${summary.absent}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Total Late</div>
+          <div class="summary-value late">${summary.late}</div>
+        </div>
+      </div>
+      
+      <h4 class="mb-2">Daily Breakdown</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Late</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.keys(dailyData).sort().reverse().map(date => {
+            const day = dailyData[date];
+            return `
+              <tr>
+                <td>${date}</td>
+                <td>${day.present}</td>
+                <td>${day.absent}</td>
+                <td>${day.late}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
 }
 
 // Initialize on page load
@@ -624,11 +755,3 @@ function showMessage(message, type = 'info') {
     }
   }
 }
-
-// Initialize on page load
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPrincipalDashboard);
-} else {
-  initPrincipalDashboard();
-}
-
