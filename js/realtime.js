@@ -69,16 +69,45 @@ function setupTeacherRealtime() {
  */
 function setupAdminRealtime() {
   const user = getCurrentUser();
-  if (!user || (user.role !== 'admin' && user.role !== 'principal')) return;
+  if (!user || user.role !== 'admin') return;
   
   // Auto-refresh reports if class and date selected
   if (selectedClass && selectedDate) {
     startAutoRefresh('reports', async () => {
-      if (selectedClass && selectedDate) {
+      if (selectedClass && selectedDate && typeof loadClassReport === 'function') {
         await loadClassReport();
       }
     }, 60000); // 1 minute for reports
   }
+  
+  // Stop on page unload
+  window.addEventListener('beforeunload', () => {
+    stopAllAutoRefresh();
+  });
+}
+
+/**
+ * Setup real-time updates for principal dashboard
+ */
+function setupPrincipalRealtime() {
+  const user = getCurrentUser();
+  if (!user || user.role !== 'principal') return;
+  
+  // Auto-refresh reports if class and date selected
+  if (selectedClass && selectedDate) {
+    startAutoRefresh('reports', async () => {
+      if (selectedClass && selectedDate && typeof loadClassReport === 'function') {
+        await loadClassReport();
+      }
+    }, 60000); // 1 minute for reports
+  }
+  
+  // Auto-refresh overview stats
+  startAutoRefresh('overview', async () => {
+    if (typeof loadOverviewStats === 'function') {
+      await loadOverviewStats();
+    }
+  }, 60000);
   
   // Stop on page unload
   window.addEventListener('beforeunload', () => {

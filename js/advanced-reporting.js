@@ -216,6 +216,91 @@ async function exportToPDF(elementId, filename = 'attendance-report') {
 }
 
 /**
+ * Export report to PDF (wrapper for admin.js compatibility)
+ */
+async function exportReportToPDF() {
+  const reportElement = document.getElementById('dateRangeReport');
+  if (!reportElement) {
+    showToast('No report to export. Please generate a report first.', 'error');
+    return;
+  }
+  
+  const className = selectedClass || 'All Classes';
+  const dateRange = document.getElementById('reportStartDate')?.value && document.getElementById('reportEndDate')?.value
+    ? `${document.getElementById('reportStartDate').value} to ${document.getElementById('reportEndDate').value}`
+    : new Date().toISOString().split('T')[0];
+  
+  const filename = `attendance-report-${className}-${dateRange}`.replace(/[^a-z0-9]/gi, '-');
+  await exportToPDF('dateRangeReport', filename);
+}
+
+/**
+ * Export report to Excel
+ */
+async function exportReportToExcel() {
+  try {
+    const reportData = window.currentReportData;
+    if (!reportData) {
+      showToast('No report data to export. Please generate a report first.', 'error');
+      return;
+    }
+    
+    showToast('Generating Excel file...', 'info');
+    
+    // Prepare data for Excel
+    const rows = [];
+    
+    // Header
+    rows.push(['Date', 'Total Students', 'Present', 'Absent', 'Late', 'Attendance %']);
+    
+    // Data rows
+    if (reportData.dailyData && Array.isArray(reportData.dailyData)) {
+      reportData.dailyData.forEach(day => {
+        const total = (day.present || 0) + (day.absent || 0) + (day.late || 0);
+        const percentage = total > 0 ? ((day.present || 0) / total * 100).toFixed(2) : 0;
+        rows.push([
+          day.date || '',
+          total,
+          day.present || 0,
+          day.absent || 0,
+          day.late || 0,
+          `${percentage}%`
+        ]);
+      });
+    }
+    
+    // Convert to CSV
+    const csv = rows.map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    
+    const className = selectedClass || 'All Classes';
+    const dateRange = document.getElementById('reportStartDate')?.value && document.getElementById('reportEndDate')?.value
+      ? `${document.getElementById('reportStartDate').value}_to_${document.getElementById('reportEndDate').value}`
+      : new Date().toISOString().split('T')[0];
+    
+    link.setAttribute('download', `attendance-report-${className}-${dateRange}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Excel file exported successfully', 'success');
+  } catch (error) {
+    console.error('Excel export error:', error);
+    showToast('Error exporting Excel file', 'error');
+  }
+}
+
+// Make functions globally available
+window.exportReportToPDF = exportReportToPDF;
+window.exportReportToExcel = exportReportToExcel;
+
+/**
  * Generate comprehensive report
  */
 function generateComprehensiveReport(reportData, options = {}) {
